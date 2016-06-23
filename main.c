@@ -1,6 +1,7 @@
 /* original program screenduo4linux written on or before Jun 1 2010 */
+/* geoff@spacevs.com Geoffrey McRae (images)                        */
 /* putpixel, putbigpixel written by Andrei Sokolov 7 Sep 2013       */ 
-/* multiline support written by Bob Gill 19 Jun 2016                */
+/* multiline color text support written by Bob Gill 19 Jun 2016     */
 /* This program is licensed under the GNU GPL v2                    */
 #include <stdio.h>
 #include <stdlib.h>
@@ -215,7 +216,6 @@ void putpixel(uint8_t *data, int x, int y, char r, char g, char b) {
     data[(x+y*320)*3+2] = b;
 }
 
-/* adding a mask parameter to putbigpixel can be used to change text colors (3 bit) rgbcymw */
 void putbigpixel(uint8_t *data, int x, int y, char r, char g, char b) {
     data[(x*2+y*2*320)*3] = r;
     data[(x*2+y*2*320)*3+1] = g;
@@ -270,6 +270,10 @@ int main(int argc, char *argv[]) {
     int set;
     int mask;
     int c;
+    int color = 1; // 1-white 2-red 3-blue 4-green 5-cyan 6-yellow 7-magenta 8-black
+    int red   = 255;
+    int green = 255;
+    int blue  = 255;
     int line = 0;
     int maxlines = 10; /* maximum number of lines for the device (starting at 0) with linespace at 10 */
     int cx = 0;   
@@ -277,20 +281,39 @@ int main(int argc, char *argv[]) {
     for (c=0; c < strlen(argv[1]); c++) {
 	if(argv[1][c] == '\\') {         /* broken out for multiple \x items */
 		c++;
-		if(argv[1][c] == 'n') 
+		if(argv[1][c] == 'n')    // newline
 			{ c++;  /* skip over the 'n' to the next character */ 
 			  line+= linespace;  /* linefeed */
 			  if (line > (linespace * maxlines)) line = 0;  /* newline screenwrap */
 		          cx = 0;   /* carriage return */
-			}	
+			}
+		if(argv[1][c] == 'c')   // set color
+			{ c++;  /* skip 1 character */
+			  // set text colors (feel free to mix your own)
+			  if(argv[1][c] == '1') { red=255;green=255;blue=255; }  // white
+			  if(argv[1][c] == '2') { red=255;green=0;blue=0; }      // red 
+			  if(argv[1][c] == '3') { red=0;green=0;blue=255; }      // blue
+			  if(argv[1][c] == '4') { red=0;green=255;blue=0; }      // green
+			  if(argv[1][c] == '5') { red=0;green=255;blue=255; }    // cyan
+			  if(argv[1][c] == '6') { red=255;green=255;blue=0; }    // yellow
+			  if(argv[1][c] == '7') { red=255;green=0;blue=255; }    // magenta
+			  if(argv[1][c] == '8') { red=0;green=0;blue=0; }        // black
+			  if(argv[1][c] == '9') { red=255;green=102;blue=0; }    // orange
+                          if(argv[1][c] == 'a') { red=255;green=0;blue=153; }    // pink
+                          if(argv[1][c] == 'b') { red=51;green=0;blue=153; }     // navy
+                          if(argv[1][c] == 'c') { red=0;green=170;blue=0; }      // lime
+                          if(argv[1][c] == 'd') { red=102;green=51;blue=0; }     // dkbrown
+                          if(argv[1][c] == 'e') { red=153;green=102;blue=51; }   // ltbrown
+			  if(argv[1][c] == 'e') { red=128;green=128;blue=128; }  // gray
+			  c++;  // skip over the color number in the string
+			} 
 	}
         char *bitmap = font8x8_basic[argv[1][c]];
         for (y=0; y < 8; y++) {
             for (x=0; x < 8; x++) {
                 set = bitmap[y] & 1 << x;
                 //putpixel(data,x+cx*8,y,set ? 255 : 0,set ? 255 : 0,set ? 255 : 0);
-		// adding a mask here can change the text background color (now set to 0) 
-                putbigpixel(data,x+cx*8,y+line,set ? 255 : 0,set ? 255 : 0,set ? 255 : 0);
+                putbigpixel(data,x+cx*8,y+line,set ? red : 0,set ? green : 0,set ? blue : 0);
             }
         }
 	cx++;
