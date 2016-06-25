@@ -274,7 +274,9 @@ int main(int argc, char *argv[]) {
     int red   = 255;
     int green = 255;
     int blue  = 255;
-    int line = 0;
+    int line  = 0;
+    int nl    = 0;
+    int nc    = 0;
     int maxlines = 10; /* maximum number of lines for the device (starting at 0) with linespace at 10 */
     int cx = 0;   
     int linespace = 10;  /* line spacing.  8 is small, 10 looks ok */
@@ -286,6 +288,7 @@ int main(int argc, char *argv[]) {
 			  line+= linespace;  /* linefeed */
 			  if (line > (linespace * maxlines)) line = 0;  /* newline screenwrap */
 		          cx = 0;   /* carriage return */
+			  nl = 1;
 			}
 		if(argv[1][c] == 'c')   // set color
 			{ c++;  /* skip 1 character */
@@ -306,8 +309,11 @@ int main(int argc, char *argv[]) {
                           if(argv[1][c] == 'e') { red=153;green=102;blue=51; }   // ltbrown
 			  if(argv[1][c] == 'e') { red=128;green=128;blue=128; }  // gray
 			  c++;  // skip over the color number in the string
+			  nc = 1;
 			} 
 	}
+	else
+	{
         char *bitmap = font8x8_basic[argv[1][c]];
         for (y=0; y < 8; y++) {
             for (x=0; x < 8; x++) {
@@ -315,10 +321,13 @@ int main(int argc, char *argv[]) {
                 //putpixel(data,x+cx*8,y,set ? 255 : 0,set ? 255 : 0,set ? 255 : 0);
                 putbigpixel(data,x+cx*8,y+line,set ? red : 0,set ? green : 0,set ? blue : 0);
             }
-        }
+          }
+	}
 	cx++;
 	if ((cx % 20) == 0) line += linespace;  /* text end-of-line crlf */
-	if (line > (linespace * maxlines)) line = 0; /* bottom of screen screenwrap */ 
+	if (line > (linespace * maxlines)) line = 0; /* bottom of screen screenwrap */
+	if (nc) {nc=0;c--;cx--;}
+	if (nl) {nl=0;cx=0;c--;} 
     }
     dev_write(device, image, sizeof(image));
 
