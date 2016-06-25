@@ -227,6 +227,16 @@ int main(int argc, char *argv[]) {
     libusb_context		*ctx;
     libusb_device_handle	*device;
 
+    if (argc < 2) {
+	printf("\n D U O");
+	printf("\nText to the ASUS screenDUO on linux.");
+	printf("\nToo few arguments given.\nUse: ./duo <screentext> where <screentext> \ncan have formatting characters \n\\n for newlines\n\\c<0-e> to change colors.\n");
+	printf("\nEg: ./duo \"Fred\\n\\c3Barney\" prints Fred, then on a new line in blue Barney");
+	printf("\nEg 2: while [1]; do ./duo \"`date`\" done    ...will continuously print the system time.");
+	printf("\nThe background color is \\c8 (black/erase)\n");
+	return -1;
+    } 
+
     if ((r = libusb_init(&ctx)) < 0)
         return r;
 
