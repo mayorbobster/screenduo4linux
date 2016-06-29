@@ -222,19 +222,34 @@ void putbigpixel(uint8_t *data, int x, int y, char r, char g, char b) {
     data[(x*2+y*2*320)*3+2] = b;
 }
 
+int x2d(char x) {
+	if((x == 'a') || (x == 'A')) return 10;
+	if((x == 'b') || (x == 'B')) return 11;
+	if((x == 'c') || (x == 'C')) return 12; 
+	if((x == 'd') || (x == 'D')) return 13;
+	if((x == 'e') || (x == 'E')) return 14;
+	if((x == 'f') || (x == 'F')) return 15; 
+	else
+	return (x-48);   
+	}
+
 int main(int argc, char *argv[]) {
     int			r;
     libusb_context		*ctx;
     libusb_device_handle	*device;
 
     if (argc < 2) {
-	printf("\n D U O");
-	printf("\nText to the ASUS screenDUO on linux.");
-	printf("\nToo few arguments given.\nUse: ./duo <screentext> where <screentext> \ncan have formatting characters \n\\n for newlines\n\\c<0-e> to change colors.\n");
-	printf("\nEg: ./duo \"Fred\\n\\c3Barney\" prints Fred, then on a new line in blue Barney");
-	printf("\nEg 2: while [1]; do ./duo \"`date`\" done    ...will continuously print the system time.");
-	printf("\nThe background color is \\c8 (black/erase)\n");
-	return -1;
+        printf("\n D U O");
+        printf("\nText to the ASUS screenDUO on linux.");
+        printf("\nToo few arguments given.\nUse: ./duo <screentext> where <screentext> \ncan have formatting characters \n\\n for newlines\n\\c<0-e> to change colors\n");
+	printf("\n\\a<FF><FF><FF> to change to an arbitrary color and FF are hexidecimal values. \nEg: \\aFa19Ed (hex letters can be either case)\n");
+	printf("\n\\p<x>,<y>, will set a pixel in the current color at x position <0-320> and y position <0-200> \nwhere 0,0, is the top left and 320,200, is the bottom right.\nRemember the second comma.\n");
+	printf("\n\\bx1,x2,y1,y2, will draw a box from x1 to x2 and from y1 to y2.\nRemember the last comma.");
+	printf("\nEg: ./duo \"\\affffff\\p20,130,\" will set white pixel at 20,130,\n");
+        printf("\nEg: ./duo \"Fred\\n\\c3Barney\" prints Fred, then on a new line in blue Barney");
+        printf("\nEg 2: while [1]; do ./duo \"`date`\" done    ...will continuously print the system time.");
+        printf("\nThe background color is \\c8  or \\a000000 (black/erase)\n");
+        return -1;
     } 
 
     if ((r = libusb_init(&ctx)) < 0)
@@ -280,10 +295,26 @@ int main(int argc, char *argv[]) {
     int set;
     int mask;
     int c;
+    int cc;
     int color = 1; // 1-white 2-red 3-blue 4-green 5-cyan 6-yellow 7-magenta 8-black
     int red   = 255;
     int green = 255;
     int blue  = 255;
+    int xpos  = 0;
+    int ypos  = 0;
+    int scale = 1;
+    int ra    = 0;  // 6 variables for arbitrary colors
+    int rb    = 0;
+    int ga    = 0;
+    int gb    = 0;
+    int ba    = 0;
+    int bb    = 0;
+    int xa    = 0;  // 6 variables for box
+    int xb    = 0;
+    int ya    = 0;
+    int yb    = 0;
+    int lnx   = 0;
+    int lny   = 0;
     int line  = 0;
     int nl    = 0;
     int nc    = 0;
@@ -293,15 +324,18 @@ int main(int argc, char *argv[]) {
     for (c=0; c < strlen(argv[1]); c++) {
 	if(argv[1][c] == '\\') {         /* broken out for multiple \x items */
 		c++;
-		if(argv[1][c] == 'n')    // newline
-			{ c++;  /* skip over the 'n' to the next character */ 
+		cc=argv[1][c];
+		switch(cc) { 
+		case('n') :
+		          c++;  /* skip over the 'n' to the next character */ 
 			  line+= linespace;  /* linefeed */
 			  if (line > (linespace * maxlines)) line = 0;  /* newline screenwrap */
 		          cx = 0;   /* carriage return */
 			  nl = 1;
-			}
-		if(argv[1][c] == 'c')   // set color
-			{ c++;  /* skip 1 character */
+			  break;
+			
+	        case('c') :		
+			  c++;  /* skip 1 character */
 			  // set text colors (feel free to mix your own)
 			  if(argv[1][c] == '1') { red=255;green=255;blue=255; }  // white
 			  if(argv[1][c] == '2') { red=255;green=0;blue=0; }      // red 
@@ -317,10 +351,53 @@ int main(int argc, char *argv[]) {
                           if(argv[1][c] == 'c') { red=0;green=170;blue=0; }      // lime
                           if(argv[1][c] == 'd') { red=102;green=51;blue=0; }     // dkbrown
                           if(argv[1][c] == 'e') { red=153;green=102;blue=51; }   // ltbrown
-			  if(argv[1][c] == 'e') { red=128;green=128;blue=128; }  // gray
+			  if(argv[1][c] == 'f') { red=128;green=128;blue=128; }  // gray
 			  c++;  // skip over the color number in the string
 			  nc = 1;
-			} 
+			  break;
+
+		case('a') :               // arbitrary color (0-FF)x3
+			  c++;ra=16*x2d(argv[1][c]);      // high red bits
+			  c++;rb=x2d(argv[1][c]);ra+=rb;  // red low+red high 
+			  c++;ga=16*x2d(argv[1][c]);      // high green bits
+                          c++;gb=x2d(argv[1][c]);ga+=gb;  // green low+green high
+			  c++;ba=16*x2d(argv[1][c]);      // blue red bits
+                          c++;bb=x2d(argv[1][c]);ba+=bb;  // blue low+blue high
+			  red=(ra % 256);green=(ga % 256);blue=(ba % 256);   // sanity checks
+			  c++;
+			  nc = 1;
+			  break;
+
+		case('p') :               // draw pixel
+			 c++;xpos=0;scale=1;while((argv[1][c] != ',') && (xpos < 320)){xpos=xpos*10;xpos+=(argv[1][c]-48);c++;}
+			 c++;ypos=0;scale=1;while((argv[1][c] != ',') && (ypos < 200)){ypos=ypos*10;ypos+=(argv[1][c]-48);c++;}
+			 xpos=(xpos % 320);  // sanity checks
+			 ypos=(ypos % 200);
+		         set = 1;
+			 putpixel(data,xpos,ypos,set ? red : 0,set ? green : 0,set ? blue : 0); 
+			 c++;
+			 nc = 1;
+			 break;
+
+	        case('b') :               // draw box	
+			c++;xa=0;scale=1;while((argv[1][c] != ',') && (xa < 320)){xa=xa*10;xa+=(argv[1][c]-48);c++;}
+			c++;xb=0;scale=1;while((argv[1][c] != ',') && (xb < 320)){xb=xb*10;xb+=(argv[1][c]-48);c++;}
+			c++;ya=0;scale=1;while((argv[1][c] != ',') && (ya < 200)){ya=ya*10;ya+=(argv[1][c]-48);c++;}
+                        c++;yb=0;scale=1;while((argv[1][c] != ',') && (yb < 200)){yb=yb*10;yb+=(argv[1][c]-48);c++;}
+			// printf("\nya: %i yb: %i xa: %i xb: %i",ya,yb,xa,xb); 
+			ya=(ya % 238);  // sanity checks
+			yb=(yb % 238);
+			xa=(xa % 321);
+			xb=(xb % 321); 
+			set = 1;
+			for(lnx=xa;lnx<xb;lnx++)
+				for(lny=ya;lny<yb;lny++)
+					putpixel(data,lnx,lny,set ? red : 0,set ? green : 0,set ? blue : 0);
+			c++;
+			nc = 1;
+			break;
+		}
+			
 	}
 	else
 	{
