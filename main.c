@@ -385,8 +385,8 @@ int main(int argc, char *argv[]) {
 			c++;ya=0;scale=1;while((argv[1][c] != ',') && (ya < 200)){ya=ya*10;ya+=(argv[1][c]-48);c++;}
                         c++;yb=0;scale=1;while((argv[1][c] != ',') && (yb < 200)){yb=yb*10;yb+=(argv[1][c]-48);c++;}
 			// printf("\nya: %i yb: %i xa: %i xb: %i",ya,yb,xa,xb); 
-			ya=(ya % 238);  // sanity checks
-			yb=(yb % 238);
+			ya=(ya % 241);  // sanity checks
+			yb=(yb % 241);
 			xa=(xa % 321);
 			xb=(xb % 321); 
 			set = 1;
