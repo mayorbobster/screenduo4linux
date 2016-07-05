@@ -19,27 +19,40 @@ CPU=`sensors | grep "CPU T" | awk '{print $3}'`
 CPUT=`sensors | grep "CPU T" | awk '{print $3}' | sed 's,+,,' | sed 's,\.[0-9].*,,'`
 if [ $CPUT -lt 40 ]
 then
-COLOR=5
+COLOR=00FFFF
 LENGTH=50
 fi
 if [ $CPUT -gt 40 ]
 then
-COLOR=6
+COLOR=40FF00
 LENGTH=100
+fi
+if [ $CPUT -gt 45 ]
+then
+COLOR=FFFF00
+LENGTH=150
 fi
 if [ $CPUT -gt 50 ]
 then
-COLOR=9
-LENGTH=150
+COLOR=FFBF00
+LENGTH=200
 fi
 if [ $CPUT -gt 55 ]
 then
-COLOR=2
-LENGTH=200
+COLOR=FF8000
+LENGTH=250
 fi
-CPUBAR="\c$COLOR\b5,$LENGTH,160,162,"
+if [ $CPUT -gt 60 ]
+then
+COLOR=FF0000
+LENGTH=300
+fi
+FANLENGTH=`sensors | grep IS2 | awk '{print $4}'`
+FANLENGTH=`expr $FANLENGTH \- 917`
+FANBAR="\c7\b0,$FANLENGTH,56,57,"
+CPUBAR="\a$COLOR\b5,$LENGTH,160,162,"
 RPMS=`sensors | grep FAN | awk '{print $4}'`
 BANNER="\c12\c20\c31\c46 \c5M\c6a\c7y\c1o\c2r \c3B\c4o\c5b\c6s\c7t\c1e\c2r"
-./duo "\c5`date` \caload:$LOAD\n\c4RPMS:$RPMS\n\c3MEMFREE: $FREEMEM k\n\c7PID %cpu Name\n\c6$TOPROCID $TOPROC\n\c2CPU $CPU\n$CPUBAR\n$BANNER"
+./duo "\c5`date` \caload:$LOAD\n\c4RPMS:$RPMS$FANBAR\n\c3MEMFREE: $FREEMEM k\n\c7PID  %cpu Name\n\c6$TOPROCID $TOPROC\n\c2CPU $CPU\n$CPUBAR\n$BANNER"
 sleep 1
 done
