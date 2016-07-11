@@ -370,9 +370,9 @@ int main(int argc, char *argv[]) {
 
 		case('p') :               // draw pixel
 			 c++;xpos=0;scale=1;while((argv[1][c] != ',') && (xpos < 320)){xpos=xpos*10;xpos+=(argv[1][c]-48);c++;}
-			 c++;ypos=0;scale=1;while((argv[1][c] != ',') && (ypos < 200)){ypos=ypos*10;ypos+=(argv[1][c]-48);c++;}
+			 c++;ypos=0;scale=1;while((argv[1][c] != ',') && (ypos < 240)){ypos=ypos*10;ypos+=(argv[1][c]-48);c++;}
 			 xpos=(xpos % 320);  // sanity checks
-			 ypos=(ypos % 200);
+			 ypos=(ypos % 240);
 		         set = 1;
 			 putpixel(data,xpos,ypos,set ? red : 0,set ? green : 0,set ? blue : 0); 
 			 c++;
