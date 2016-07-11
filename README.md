@@ -15,3 +15,4 @@ TODO:  1) color text (already done, run colorpick.sh or duoinfo.sh).
 The 8x8 font file is available here but also available at other places on github (and has its own attribution in the file).
 I may consider using or building another font file that would look better on this device.
 
+Possible uses:  I have created duoinfo.sh to monitor system activity.  You could also use this to monitor sound tracks playing, network activity, disk capacity, users on a network server, etc.  You could also use it to monitor dmesg or any other system activity.  I have only tested it using bash, but any other text output should work.  You can't (yet) pipe data to it (unlike most unix applications) but I suspect this should be very easy to do (and currently when you just type ./duo on the command line it gives you help messages, and use examples) this may be removed in the future.
